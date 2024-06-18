@@ -1,0 +1,92 @@
+/*
+    Estilo CSS para el footer de las páginas públicas 
+    y para los errores del sistema, este estilo se va a aplicar unicamente cuando el mediaquery llegue 
+    a ese tamaño de la pantalla (1400px)
+*/
+@media (min-width: 1400px) { 
+    .contenedor-general{
+        height: 70vh;
+    }
+}
+
+/* Estilos para contenedores de la página de inicio pc */
+.contenedor-simple{
+    display: block;
+}
+
+.contenedor-simple-telefono{
+    display: none;
+}
+
+/* Estilos para contenedores de la página de inicio mobile/tablet */
+@media only screen and (max-width: 770px) {
+    .contenedor-simple{
+        display:none;
+    }
+    
+    .contenedor-simple-telefono{
+        display: block;
+    }
+
+    .separador{                  
+        display: none;
+    }
+
+}
+
+/* Estilos para poder crear callouts en bootstrap */
+
+.bd-callout {
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid #eee;
+    border-left-width: .25rem;
+    border-radius: .25rem
+}
+.bd-callout h4 {
+    margin-top: 0;
+    margin-bottom: .25rem
+}
+
+.bd-callout p:last-child {
+    margin-bottom: 0
+}
+
+.bd-callout-warning {
+    border-left-color: black;
+}
+
+.bd-callout-warning h4 {
+    color:  black;
+}
+
+/* h4::selection {
+    background-color: #621132;
+    color:white;
+} */
+
+/* Efecto para las tarjetas de la pantalla de inicio */
+.tarjetas-inicio:hover {
+    transform: translateY(-5px) scale(1.055) translateZ(0);
+    box-shadow: 0 24px 36px rgba(0,0,0,0.11),
+    0 24px 46px var(--box-shadow-color);
+}
+
+.footer-fernando{
+    display: none;
+}
+
+
+@media only screen and (max-width: 1400px) {               
+    .separador{
+        /* width: 242px; */
+        width: 450px;
+    }
+}
+
+@media only screen and (max-width: 1200px) {               
+    .footer-fernando{
+        display: block;
+    }
+}
