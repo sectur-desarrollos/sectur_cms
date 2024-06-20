@@ -21,6 +21,12 @@ use App\Http\Controllers\RepositorioController;
 use Illuminate\Support\Facades\Session;
 use App\Models\PaginaSeccion;
 use Spatie\Activitylog\Models\Activity;
+use App\Http\Controllers\PaginaV2Controller;
+// V2
+use App\Http\Controllers\SeccionV2Controller;
+use App\Http\Controllers\SubseccionV2Controller;
+use App\Http\Controllers\ArchivoV2Controller;
+use App\Http\Controllers\EnlaceV2Controller;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -39,7 +45,43 @@ Route::get('salir', [AutenticarController::class, 'salida'])->name('salir');
 
 Route::resource('roles', RoleController::class)->names('roles');
 
-Route::get('pruebinguis', [PaginaSubSeccionArchivoController::class, 'pruebinguis'])->name('pruebinguis');
+/**              v2                     **/
+// Módulo de paginas
+Route::resource('paginas', PaginaV2Controller::class);
+
+// CKEDITOR imágenes
+Route::post('ckeditor/upload', [PaginaV2Controller::class, 'uploadImage'])->name('ckeditor.upload');
+
+// Módulo de archivos
+Route::post('archivos', [ArchivoV2Controller::class, 'store'])->name('archivos.store');
+Route::resource('archivos', ArchivoV2Controller::class)->only([
+    'store', 'update', 'destroy'
+]);
+
+// Módulo de enlaces
+Route::post('{type}/{id}/enlaces', [EnlaceV2Controller::class, 'store'])->name('enlaces.store');
+Route::put('{type}/{id}/enlaces/{enlace}', [EnlaceV2Controller::class, 'update'])->name('enlaces.update');
+Route::delete('{type}/{id}/enlaces/{enlace}', [EnlaceV2Controller::class, 'destroy'])->name('enlaces.destroy');
+
+// Rutas anidadas para secciones dentro de páginas
+Route::resource('paginas.secciones', SeccionV2Controller::class)->parameters([
+   'secciones' => 'seccion',
+])->except(['show']);
+
+// Contenido (Archivos y Enlacse) de secciones
+Route::get('paginas/{pagina}/secciones/{seccion}/contenido', [SeccionV2Controller::class, 'contenido'])->name('secciones.contenido');
+
+// Rutas anidadas para subsecciones dentro de secciones
+Route::resource('secciones.subsecciones', SubseccionV2Controller::class)->parameters([
+   'secciones' => 'seccion',
+   'subsecciones' => 'subseccion',
+])->except(['show']);
+
+// Contenido (Archivos y Enlaces) de subsecciones
+Route::get('secciones/{seccion}/subsecciones/{subseccion}/contenido', [SubseccionV2Controller::class, 'contenido'])->name('subsecciones.contenido');
+/**              v2                     **/
+
+//Route::get('pruebinguis', [PaginaSubSeccionArchivoController::class, 'pruebinguis'])->name('pruebinguis');
 // Route::get('buscar-paginas', [RoleController::class, 'role'])
 
 // Ruta con ajax para obtener toda la data de paginas con datatables
@@ -74,17 +116,17 @@ Route::get('footers-data', [FooterController::class, 'footersDataTables'])->name
 Route::post('slug-check', [MenuController::class, 'check'])->name('menu.register-check');
 
 // Ruta resource para las páginas
-Route::resource('paginas', PaginaController::class)->names('paginas');
+//Route::resource('paginas', PaginaController::class)->names('paginas');
 // Ruta para el listado de páginas que tiene asignadas un empleado
 Route::get('listado-paginas',[PaginaController::class, 'paginasEmpleados'])->name('paginas.paginas-empleados');
 
 
 
 // Ruta con ajax para obtener toda la data de archivos de una página con datatables
-Route::get('paginas-data-archivos', [ArchivosPaginaController::class, 'paginasArchivosDatatables'])->name('paginas-data-archivos');
+//Route::get('paginas-data-archivos', [ArchivosPaginaController::class, 'paginasArchivosDatatables'])->name('paginas-data-archivos');
 
 // Ruta con AJAX para encontrar archivos dentro con base a una poágina en especifica
-Route::get('paginas-archivos-check', [ArchivosPaginaController::class, 'check'])->name('paginas-archivos.paginas-archivos-check');
+//Route::get('paginas-archivos-check', [ArchivosPaginaController::class, 'check'])->name('paginas-archivos.paginas-archivos-check');
 
 // Ruta resource secion de inicio (welcome)
 Route::resource('seccion-inicio', SeccionController::class)->names('seccion-inicio');
@@ -121,10 +163,10 @@ Route::get('prueba', function() {
    });
 
 // Ruta con ajax para obtener toda las secciones de paginas con datatables
-Route::get('paginas-subsecciones-archivos-data', [PaginaSubSeccionArchivoController::class, 'paginasSubSeccionesArchivosDatatables'])->name('paginas-subsecciones-archivos-data');
+//Route::get('paginas-subsecciones-archivos-data', [PaginaSubSeccionArchivoController::class, 'paginasSubSeccionesArchivosDatatables'])->name('paginas-subsecciones-archivos-data');
 
 // Ruta con ajax para obtener toda las secciones de paginas con datatables
-Route::get('paginas-subsecciones-data', [PaginaSubSeccionController::class, 'paginasSubSeccionesDatatables'])->name('paginas-subsecciones-data');
+//Route::get('paginas-subsecciones-data', [PaginaSubSeccionController::class, 'paginasSubSeccionesDatatables'])->name('paginas-subsecciones-data');
 
 // Ruta con ajax para obtener toda las secciones de paginas con datatables
 // Route::get('paginas-secciones-data', [PaginaSeccionController::class, 'paginasSeccionesDatatables'])->name('paginas-secciones-data');
@@ -141,89 +183,89 @@ Route::resource('repositorio', RepositorioController::class)->names('repositorio
 Route::get('repositorios-data', [RepositorioController::class, 'repositoriosDatatables'])->name('repositorios-data');
 
 // Ruta con ajax para obtener toda la data de paginas con datatables
-Route::get('paginas-data', [PaginaController::class, 'paginasDatatables'])->name('paginas-data');
+//Route::get('paginas-data', [PaginaController::class, 'paginasDatatables'])->name('paginas-data');
 
 // Ruta get para visualziar las páginas
 Route::get('{pagina?}', [PaginaController::class, 'tipoPagina'])->name('pagina');
 
 // Ruta para subir imagen
-Route::post('image/upload', [PaginaController::class, 'upload'])->name('image.upload');
+//Route::post('image/upload', [PaginaController::class, 'upload'])->name('image.upload');
 
 // Ruta para mostrar la vista principal de archivos de una página
-Route::get('paginas/{pagina}/archivos',[ArchivosPaginaController::class, 'index'])->name('paginas.archivos');
+//Route::get('paginas/{pagina}/archivos',[ArchivosPaginaController::class, 'index'])->name('paginas.archivos');
 
 
 // Ruta resource para el CRUD de archivos
-Route::resource('archivos', ArchivosPaginaController::class)->names('paginas-archivos');
+//Route::resource('archivos', ArchivosPaginaController::class)->names('paginas-archivos');
 
 
 // ruta para crear archivos de paginas
-Route::get('archivos/create/{pagina}/archivo', [ArchivosPaginaController::class, 'create'])->name('paginas-archivos.create');
+//Route::get('archivos/create/{pagina}/archivo', [ArchivosPaginaController::class, 'create'])->name('paginas-archivos.create');
 
 // Ruta para ajax - buscar un paginas con select2 
 // Route::get('pagina-search', [RoleController::class, 'paginaSearch'])->name('paginas.paginaSearch');
 
 //Ruta resource para las secciones de una pagina
-Route::resource('pagina-seccion', PaginaSeccionController::class)->names('paginas.pagina-seccion');
+//Route::resource('pagina-seccion', PaginaSeccionController::class)->names('paginas.pagina-seccion');
 
 //------------INICIO RUTA RESOURCE PARA CRUD DE SECCIONES------------------
 // Ruta index para la sección de una página
-Route::get('paginas/{pagina}/seccion', [PaginaSeccionController::class, 'index'])->name('paginas.pagina-seccion-index');
+//Route::get('paginas/{pagina}/seccion', [PaginaSeccionController::class, 'index'])->name('paginas.pagina-seccion-index');
 
 // Ruta create para la sección de una página
-Route::get('paginas/{pagina}/seccion/create', [PaginaSeccionController::class, 'create'])->name('paginas.pagina-seccion-create');
+//Route::get('paginas/{pagina}/seccion/create', [PaginaSeccionController::class, 'create'])->name('paginas.pagina-seccion-create');
 
 // Ruta store para sección de una página
-Route::post('paginas/{pagina}/seccion/store', [PaginaSeccionController::class, 'store'])->name('paginas.pagina-seccion-store');
+//Route::post('paginas/{pagina}/seccion/store', [PaginaSeccionController::class, 'store'])->name('paginas.pagina-seccion-store');
 
 // Ruta edit para la sección de una página 
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/edit', [PaginaSeccionController::class, 'edit'])->name('paginas.pagina-seccion-edit');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/edit', [PaginaSeccionController::class, 'edit'])->name('paginas.pagina-seccion-edit');
 
 // Ruta update para la sección de una página 
-Route::put('paginas/{pagina}/seccion/{paginaSeccion}/update', [PaginaSeccionController::class, 'update'])->name('paginas.pagina-seccion-update');
+//Route::put('paginas/{pagina}/seccion/{paginaSeccion}/update', [PaginaSeccionController::class, 'update'])->name('paginas.pagina-seccion-update');
 
 // Ruta delete para la sección de una página 
-Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/delete', [PaginaSeccionController::class, 'destroy'])->name('paginas.pagina-seccion-destroy');
+//Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/delete', [PaginaSeccionController::class, 'destroy'])->name('paginas.pagina-seccion-destroy');
 //------------FIN RUTA RESOURCE PARA CRUD DE SECCIONES------------------
 
 
 //------------INICIO RUTA RESOURCE PARA CRUD DE ARCHIVOS SECCIONES------------------
 // Ruta index para los archivos de una sección de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/archivos', [PaginaSeccionArchivoController::class, 'index'])->name('paginas.seccion-archivos-index');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/archivos', [PaginaSeccionArchivoController::class, 'index'])->name('paginas.seccion-archivos-index');
 
 // Ruta create para los archivos de una sección de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/archivos/create', [PaginaSeccionArchivoController::class, 'create'])->name('paginas.seccion-archivos-create');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/archivos/create', [PaginaSeccionArchivoController::class, 'create'])->name('paginas.seccion-archivos-create');
 
 // Ruta store para los archivos de una sección de página
-Route::post('paginas/{pagina}/seccion/{paginaSeccion}/archivos/store', [PaginaSeccionArchivoController::class, 'store'])->name('paginas.seccion-archivos-store');
+//Route::post('paginas/{pagina}/seccion/{paginaSeccion}/archivos/store', [PaginaSeccionArchivoController::class, 'store'])->name('paginas.seccion-archivos-store');
 
 // Ruta create para los archivos de una sección de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/archivos/{paginaSeccionArchivo}/edit', [PaginaSeccionArchivoController::class, 'edit'])->name('paginas.seccion-archivos-edit');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/archivos/{paginaSeccionArchivo}/edit', [PaginaSeccionArchivoController::class, 'edit'])->name('paginas.seccion-archivos-edit');
 
-Route::put('paginas/{pagina}/seccion/{paginaSeccion}/archivos/{paginaSeccionArchivo}/update', [PaginaSeccionArchivoController::class, 'update'])->name('paginas.seccion-archivos-update');
+//Route::put('paginas/{pagina}/seccion/{paginaSeccion}/archivos/{paginaSeccionArchivo}/update', [PaginaSeccionArchivoController::class, 'update'])->name('paginas.seccion-archivos-update');
 
-Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/archivos/{paginaSeccionArchivo}/delete',[PaginaSeccionArchivoController::class, 'destroy'])->name('paginas.seccion-archivos-destroy');
+//Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/archivos/{paginaSeccionArchivo}/delete',[PaginaSeccionArchivoController::class, 'destroy'])->name('paginas.seccion-archivos-destroy');
 //------------FIN RUTA RESOURCE PARA CRUD DE ARCHIVOS SECCIONES------------------
 
 
 //------------INICIO RUTA RESOURCE PARA CRUD DE SUBSECCIONES------------------
 
 // Ruta index para las subsecciones de una sección de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion', [PaginaSubSeccionController::class, 'index'])->name('paginas.pagina-subseccion-index');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion', [PaginaSubSeccionController::class, 'index'])->name('paginas.pagina-subseccion-index');
 
 // Ruta create para las subsecciones de una sección de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/create', [PaginaSubSeccionController::class, 'create'])->name('paginas.pagina-subseccion-create');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/create', [PaginaSubSeccionController::class, 'create'])->name('paginas.pagina-subseccion-create');
 
 // Ruta store para guardar una subseccion de una seccion de página
-Route::post('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/store', [PaginaSubSeccionController::class, 'store'])->name('paginas.pagina-subseccion-store');
+//Route::post('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/store', [PaginaSubSeccionController::class, 'store'])->name('paginas.pagina-subseccion-store');
 
 // Ruta edit para mostrar la vista de una subseccion de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/edit', [PaginaSubSeccionController::class, 'edit'])->name('paginas.pagina-subseccion-edit');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/edit', [PaginaSubSeccionController::class, 'edit'])->name('paginas.pagina-subseccion-edit');
 
 // Ruta update para actualizar una subseccionn de una seccion de página
-Route::put('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/updated', [PaginaSubSeccionController::class, 'update'])->name('paginas.pagina-subseccion-update');
+//Route::put('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/updated', [PaginaSubSeccionController::class, 'update'])->name('paginas.pagina-subseccion-update');
 
-Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/destroy', [PaginaSubSeccionController::class, 'destroy'])->name('paginas.pagina-subseccion-destroy');
+//Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/destroy', [PaginaSubSeccionController::class, 'destroy'])->name('paginas.pagina-subseccion-destroy');
 
 //------------FIN RUTA RESOURCE PARA CRUD DE SUBSECCIONES------------------
 
@@ -231,26 +273,26 @@ Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subse
 //------------INICIO RUTA RESOURCE PARA CRUD DE ARCHIVOS DE SUBSECCIONES------------------
 
 // Ruta index para archivos de una subsección de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos', [PaginaSubSeccionArchivoController::class, 'index'])->name('paginas.subseccion-archivos-index');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos', [PaginaSubSeccionArchivoController::class, 'index'])->name('paginas.subseccion-archivos-index');
 
 // Ruta create para archivos de una subsección de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/create', [PaginaSubSeccionArchivoController::class, 'create'])->name('paginas.subseccion-archivos-create');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/create', [PaginaSubSeccionArchivoController::class, 'create'])->name('paginas.subseccion-archivos-create');
 
 // Ruta store para archivos de una subsección de página
-Route::post('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/store', [PaginaSubSeccionArchivoController::class, 'store'])->name('paginas.subseccion-archivos-store');
+//Route::post('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/store', [PaginaSubSeccionArchivoController::class, 'store'])->name('paginas.subseccion-archivos-store');
 
 // Ruta edit para archivos de una subseccion de página
-Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/{pagina_subseccion_archivo}/edit', [PaginaSubSeccionArchivoController::class, 'edit'])->name('paginas.subseccion-archivos-edit');
+//Route::get('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/{pagina_subseccion_archivo}/edit', [PaginaSubSeccionArchivoController::class, 'edit'])->name('paginas.subseccion-archivos-edit');
 
-Route::put('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/{pagina_subseccion_archivo}/update', [PaginaSubSeccionArchivoController::class, 'update'])->name('paginas.subseccion-archivos-update');
+//Route::put('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/{pagina_subseccion_archivo}/update', [PaginaSubSeccionArchivoController::class, 'update'])->name('paginas.subseccion-archivos-update');
 
-Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/{pagina_subseccion_archivo}/destroy', [PaginaSubSeccionArchivoController::class, 'destroy'])->name('paginas.subseccion-archivos-destroy');
+//Route::delete('paginas/{pagina}/seccion/{paginaSeccion}/subseccion/{pagina_subseccion}/archivos/{pagina_subseccion_archivo}/destroy', [PaginaSubSeccionArchivoController::class, 'destroy'])->name('paginas.subseccion-archivos-destroy');
 
 //------------fin RUTA RESOURCE PARA CRUD DE ARCHIVOS DE SUBSECCIONES------------------
 
 
 // Ruta resource para crear archivos de una subseccion de una sección para una página
-Route::resource('pagina-subseccion-archivos', PaginaSubSeccionArchivoController::class)->names('paginas.pagina-subseccion-archivos');
+//Route::resource('pagina-subseccion-archivos', PaginaSubSeccionArchivoController::class)->names('paginas.pagina-subseccion-archivos');
 
 // Ruta para mostrar la vista index/listado de secciones de una página
 // Route::get('seccion/{seccion}/subseccion/{paginaSubSeccion}/archivos', [PaginaSubSeccionArchivoController::class, 'index'])->name('paginas.pagina-subseccion-archivos-index');

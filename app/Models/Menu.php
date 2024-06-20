@@ -61,7 +61,7 @@ class Menu extends Model
     // Relación de un menú tiene muchas páginas 1:M
     public function paginas()
     {
-        return $this->hasMany(Pagina::class);
+        return $this->hasMany(PaginaV2::class);
     }
 
     // Relación recursiva de menús, un menu tiene varios menus

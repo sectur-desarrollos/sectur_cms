@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Menu;
 use App\Models\Pagina;
+use App\Models\PaginaV2;
 use App\Rules\Recaptcha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,7 @@ class MenuController extends Controller
         $menus = Menu::menus();
         // dd($menus);
         // $menus = Menu::all();
-        $paginas = DB::table('paginas')->orderBy('titulo','asc')->get();
+        $paginas = DB::table('paginas_v2')->orderBy('titulo','asc')->get();
         return view('menu.create', compact('menus','paginas'));
     }
 
@@ -55,7 +56,7 @@ class MenuController extends Controller
         if(($request->pagina_id != '0') && (is_null($request->enlace))){
             $valoresMenu = $request->all();
             $pagina_id = $request->pagina_id;
-            $paginaNombre = Pagina::findOrFail($pagina_id);
+            $paginaNombre = PaginaV2::findOrFail($pagina_id);
             $slugPagina = $paginaNombre->slug;
 
             $valoresMenu['nombre_pagina'] = $slugPagina;
@@ -79,7 +80,7 @@ class MenuController extends Controller
     {
         // $menus = Menu::menus();
         $menus = Menu::all();
-        $paginas = DB::table('paginas')->orderBy('titulo','asc')->get();
+        $paginas = DB::table('paginas_v2')->orderBy('titulo','asc')->get();
         $menuData = Menu::findOrFail($id);
         
         return view('menu.edit', compact('menuData', 'menus', 'paginas'));
@@ -106,7 +107,7 @@ class MenuController extends Controller
            //     'slug' => "unique:menus,slug,$menu->id",
            // ]);
             $pagina_id = $request->pagina_id;
-            $paginaNombre = Pagina::findOrFail($pagina_id);
+            $paginaNombre = PaginaV2::findOrFail($pagina_id);
             $slugPagina = $paginaNombre->slug;
 
             $valoresMenu['nombre_pagina'] = $slugPagina;

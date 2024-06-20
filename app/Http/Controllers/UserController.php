@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pagina;
+use App\Models\PaginaV2;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Rules\Recaptcha;
@@ -31,8 +31,8 @@ class UserController extends Controller
     {
         $roles = Role::all();
 
-        $paginas = Pagina::select("titulo", "id")
-                        ->where('estado','Si')
+        $paginas = PaginaV2::select("titulo", "id")
+                        ->where('activo',1)
                         ->get();
 
         return view('users.create', compact('roles', 'paginas'));
@@ -95,8 +95,8 @@ class UserController extends Controller
 
         $roles = Role::all();
 
-        $paginas = Pagina::select("titulo", "id")
-                        ->where('estado','Si')
+        $paginas = PaginaV2::select("titulo", "id")
+                        ->where('activo','1')
                         ->get();
 
         return view('users.edit', compact('user', 'roles','paginas'));

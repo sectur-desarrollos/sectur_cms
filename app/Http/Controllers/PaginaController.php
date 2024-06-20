@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pagina;
+use App\Models\PaginaV2;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Archivo;
@@ -293,42 +293,162 @@ class PaginaController extends Controller
      * Función que busca una página seleccionada y esta manda los datos de la seleccionada a una plantilla especial
      * Al igual que toma los valores del footer y los pasa a la misma plantilla
      */
-    public function tipoPagina(Pagina $pagina)
+    // public function tipoPagina(Pagina $pagina)
+    // {
+
+    //     // Obteneindo los valores de la pagina seleccionada para enviarlos a una vista dependiendo su tipo
+    //     $pagina_seleccionada = Pagina::find($pagina)->first();
+    //     $tipoPagina = $pagina_seleccionada->tipo_pagina;
+    //     $paginas = Pagina::all();
+    //     $pagina = Pagina::find($pagina);
+        
+    //     // Obteniendo el contenido de cada "sección del footer" para poder pasarlo a la plantilla de las paginas
+    //     $contenidoFooterContacto = Footer::where('tipo', 1)->where('estado','Si')->get();
+    //     $contenidoFooterRecurso = Footer::where('tipo', 2)->where('estado','Si')->get();
+    //     $contenidoFooterRedes = Footer::where('tipo', 3)->where('estado','Si')->get();
+
+    //     // Obteniendo si la pagina seleccionada contiene algun archivo
+    //     $archivosPagina = Archivo::where('pagina_id', $pagina_seleccionada->id)
+    //                                 ->where('estado', 'Si')
+    //                                 ->get();
+                                    
+    //     // Obteniendo las secciones y los archivos de una sección
+    //     $seccionesPagina = PaginaSeccion::with(['paginasSeccionesArchivos' => function ($query) {
+    //                                         $query->where('estado', 'Si');
+	// 				    $query->orderby('created_at','asc');
+    //                                     }])
+    //                                     ->with(['paginasSeccionesSubsecciones.paginasSeccionesSubseccionesArchivos' => function ($query) {
+    //                                         $query->where('estado', 'Si');
+    //                                     }])
+    //                                     ->with(['paginasSeccionesSubsecciones' => function ($query) {
+    //                                         $query->where('estado', 'Si');
+    //                                     }])
+    //                                     ->where('pagina_id', $pagina_seleccionada->id)
+    //                                     ->where('estado', 'Si')
+	// 				->orderBy('created_at','asc')
+    //                                     ->get();
+
+    //     $menu_pg_seleccionada = Menu::where('pagina_id', '=', $pagina_seleccionada->id)
+    //                                 ->select('id')
+    //                                 ->get();
+        
+    //     $menu_pg_seleccionada_id = '';
+        
+    //     foreach($menu_pg_seleccionada as $menu){
+    //         $menu_pg_seleccionada_id = $menu->id;
+    //     }
+
+    //     $menu_id = Session::get('menuSelectId');
+
+    //     $sinMenuId = null;
+    //     $conMenuId = null;
+    //     $menuNombre = null;
+    //     $menus = null;
+    //     $menuNombreSinMenuId = null;
+    //     $menusSinMenuId = null;
+
+    //     if($menu_id == null)
+    //     {
+    //         $menuNombreSinMenuId = 'Secretaría de Turismo';
+    //         $menusSinMenuId = Menu::where('parent', 0)
+    //                                 ->orderBy('order', 'asc')
+    //                                 ->get();
+    //         $sinMenuId = 1;
+    //         $conMenuId = 0;
+    //     } else {
+    //         $menuNombre = Menu::find(Session::get('menuSelectId'),['name']);
+
+    //         $menus = Menu::where('menu_id', Session::get('menuSelectId'))
+    //                     // ->with('children_menus')
+    //                     ->with('parent')
+    //                     ->get();
+    //         $conMenuId = 1;
+    //         $sinMenuId = 0;
+
+    //     }
+
+    //     switch ($tipoPagina) {
+    //         case 'pagina':
+    //             return view('paginas.paginas-publicas.paginas-publicas', 
+    //                         compact(
+    //                             'pagina',
+    //                             'paginas',
+    //                             'pagina_seleccionada',
+    //                             'contenidoFooterContacto', 
+    //                             'contenidoFooterRecurso',
+    //                             'contenidoFooterRedes', 
+    //                             'archivosPagina', 
+    //                             'seccionesPagina',
+    //                             'menus',
+    //                             'menuNombre',
+    //                             'conMenuId',
+    //                             'menusSinMenuId',
+    //                             'sinMenuId',
+    //                             'menuNombreSinMenuId',
+    //                         ));
+    //             break;
+    //         case 'blog':
+    //             return view('paginas.paginas-publicas.paginas-publicas', compact('pagina','paginas'));
+    //             break;
+    //         case 'galeria':
+    //             echo 'Esta es la página para galeria';
+    //             break;
+            
+    //         default:
+    //             echo 'Entró al default, no existe';
+    //             break;
+    //     }
+    // }
+    public function tipoPagina($slug)
     {
 
-        // Obteneindo los valores de la pagina seleccionada para enviarlos a una vista dependiendo su tipo
-        $pagina_seleccionada = Pagina::find($pagina)->first();
-        $tipoPagina = $pagina_seleccionada->tipo_pagina;
-        $paginas = Pagina::all();
-        $pagina = Pagina::find($pagina);
-        
+        // Encontrar la página por su slug
+        $pagina = PaginaV2::where('slug', $slug)->firstOrFail();
+
+        $pagina_seleccionada = PaginaV2::find($pagina->id)->first();
+    
+        // Cargar las relaciones con condiciones de activo y ordenamiento usando with
+        $pagina->load([
+            'archivos' => function($query) {
+                $query->where('activo', 1)->orderBy('ordenamiento', 'asc');
+            },
+            'enlaces' => function($query) {
+                $query->where('activo', 1)->orderBy('ordenamiento', 'asc');
+            },
+            'secciones' => function($query) {
+                $query->where('activo', 1)->orderBy('ordenamiento', 'asc')
+                    ->with([
+                        'subsecciones' => function($query) {
+                            $query->where('activo', 1)->orderBy('ordenamiento', 'asc')
+                                ->with([
+                                    'archivos' => function($query) {
+                                        $query->where('activo', 1)->orderBy('ordenamiento', 'asc');
+                                    },
+                                    'enlaces' => function($query) {
+                                        $query->where('activo', 1)->orderBy('ordenamiento', 'asc');
+                                    }
+                                ]);
+                        },
+                        'archivos' => function($query) {
+                            $query->where('activo', 1)->orderBy('ordenamiento', 'asc');
+                        },
+                        'enlaces' => function($query) {
+                            $query->where('activo', 1)->orderBy('ordenamiento', 'asc');
+                        }
+                    ]);
+            }
+        ]);
+
+
+
         // Obteniendo el contenido de cada "sección del footer" para poder pasarlo a la plantilla de las paginas
         $contenidoFooterContacto = Footer::where('tipo', 1)->where('estado','Si')->get();
         $contenidoFooterRecurso = Footer::where('tipo', 2)->where('estado','Si')->get();
         $contenidoFooterRedes = Footer::where('tipo', 3)->where('estado','Si')->get();
 
-        // Obteniendo si la pagina seleccionada contiene algun archivo
-        $archivosPagina = Archivo::where('pagina_id', $pagina_seleccionada->id)
-                                    ->where('estado', 'Si')
-                                    ->get();
-                                    
-        // Obteniendo las secciones y los archivos de una sección
-        $seccionesPagina = PaginaSeccion::with(['paginasSeccionesArchivos' => function ($query) {
-                                            $query->where('estado', 'Si');
-					    $query->orderby('created_at','asc');
-                                        }])
-                                        ->with(['paginasSeccionesSubsecciones.paginasSeccionesSubseccionesArchivos' => function ($query) {
-                                            $query->where('estado', 'Si');
-                                        }])
-                                        ->with(['paginasSeccionesSubsecciones' => function ($query) {
-                                            $query->where('estado', 'Si');
-                                        }])
-                                        ->where('pagina_id', $pagina_seleccionada->id)
-                                        ->where('estado', 'Si')
-					->orderBy('created_at','asc')
-                                        ->get();
 
-        $menu_pg_seleccionada = Menu::where('pagina_id', '=', $pagina_seleccionada->id)
+
+        $menu_pg_seleccionada = Menu::where('pagina_id', '=', $pagina->id)
                                     ->select('id')
                                     ->get();
         
@@ -367,37 +487,19 @@ class PaginaController extends Controller
 
         }
 
-        switch ($tipoPagina) {
-            case 'pagina':
-                return view('paginas.paginas-publicas.paginas-publicas', 
-                            compact(
-                                'pagina',
-                                'paginas',
-                                'pagina_seleccionada',
-                                'contenidoFooterContacto', 
-                                'contenidoFooterRecurso',
-                                'contenidoFooterRedes', 
-                                'archivosPagina', 
-                                'seccionesPagina',
-                                'menus',
-                                'menuNombre',
-                                'conMenuId',
-                                'menusSinMenuId',
-                                'sinMenuId',
-                                'menuNombreSinMenuId',
-                            ));
-                break;
-            case 'blog':
-                return view('paginas.paginas-publicas.paginas-publicas', compact('pagina','paginas'));
-                break;
-            case 'galeria':
-                echo 'Esta es la página para galeria';
-                break;
-            
-            default:
-                echo 'Entró al default, no existe';
-                break;
-        }
+        return view('paginas.paginas-publicas.paginas-publicas', 
+                    compact(
+                        'pagina',
+                        'contenidoFooterContacto', 
+                        'contenidoFooterRecurso',
+                        'contenidoFooterRedes', 
+                        'menus',
+                        'menuNombre',
+                        'conMenuId',
+                        'menusSinMenuId',
+                        'sinMenuId',
+                        'menuNombreSinMenuId',
+                    ));
     }
 
     // Función para subir imagenes al servidor con ckeditor
