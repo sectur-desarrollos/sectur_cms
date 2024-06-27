@@ -51,7 +51,7 @@
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="archivo" class="form-label">Archivo (20 MB máximo)</label>
+                            <label for="archivo" class="form-label">Archivo (25 MB máximo)</label>
                             <input type="file" name="archivo" class="form-control @error('archivo') is-invalid @enderror" id="archivo" required>
                             @error('archivo')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -145,7 +145,7 @@
                                                         @enderror
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label for="archivo" class="form-label">Archivo (opcional) <small><b>(Tamaño MÁXIMO 20MB)</b></small></label>
+                                                        <label for="archivo" class="form-label">Archivo (opcional) <small><b>(Tamaño MÁXIMO 25MB)</b></small></label>
                                                         <input type="file" name="archivo" class="form-control @error('archivo') is-invalid @enderror">
                                                         @error('archivo')
                                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -221,6 +221,7 @@
                         @csrf
                         <input type="hidden" name="entity_id" value="{{ $subseccion->id }}">
                         <input type="hidden" name="entity_type" value="subseccion">
+                        <input type="hidden" name="folder" value="{{ $seccion->pagina->slug .'/'. $seccion->slug .'/'. $subseccion->slug}}">
                         <div class="mb-3">
                             <label for="nombreEnlace" class="form-label">Nombre del Enlace</label>
                             <input type="text" name="nombre" class="form-control @error('nombre') is-invalid @enderror" id="nombreEnlace" value="{{ old('nombre') }}" required>
@@ -295,6 +296,7 @@
                                             <form action="{{ route('enlaces.update', ['type' => 'subseccion', 'id' => $subseccion->id, 'enlace' => $enlace->id]) }}" method="POST">
                                                 @csrf
                                                 @method('PUT')
+                                                <input type="hidden" name="folder" value="{{ $seccion->pagina->slug .'/'. $seccion->slug .'/'. $subseccion->slug}}">
                                                 <div class="modal-body">
                                                     <div class="mb-3">
                                                         <label for="nombreEnlace{{ $enlace->id }}" class="form-label">Nombre del Enlace</label>

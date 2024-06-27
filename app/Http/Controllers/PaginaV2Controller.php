@@ -6,8 +6,10 @@ use App\Models\PaginaV2;
 use Illuminate\Http\Request;
 use App\Models\ArchivoV2;
 use App\Models\EnlaceV2;
+use App\Models\HistorialLog;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Str; 
+use Illuminate\Support\Facades\Auth;
 
 class PaginaV2Controller extends Controller
 {
@@ -59,6 +61,9 @@ class PaginaV2Controller extends Controller
         }
     
         PaginaV2::create($validated);
+
+        // Registrar en el log
+        $this->log('Creación', $validated['slug'], 'Agregó el registro: "' . $validated['titulo'] . '" con la informacion "'. implode(', ', $validated).'"');
     
         return redirect()->route('paginas.index')->with('success', 'Página creada exitosamente');
     }
@@ -138,6 +143,10 @@ class PaginaV2Controller extends Controller
         }
     
         $pagina->update($validated);
+
+        // Registrar en el log
+        $this->log('Actualización', $validated['slug'], 'Actualizó el registro: "' . $validated['titulo'] . '" con la informacion "'. implode(', ', $validated).'"');
+    
     
         return redirect()->route('paginas.edit', $pagina->id)->with('success', 'Página actualizada de forma correcta');
     }
@@ -168,8 +177,16 @@ class PaginaV2Controller extends Controller
                 Storage::disk('public')->deleteDirectory($directoryPath);
             }
     
+            session(['nombre' => $pagina->titulo]);
+            session(['slug' => $pagina->slug]);
+            session(['paginaData' => $pagina]);
+
             // Finalmente, eliminar la página
             $pagina->delete();
+
+            // Registrar en el log
+            $this->log('Eliminación', session('slug'), 'Eliminó el registro: "' . session('nombre') . '" con la informacion "'. session('paginaData') .'"');
+            session()->forget(['nombre', 'slug','paginaData']);
     
             return redirect()->route('paginas.index')->with('success', 'Página y sus archivos eliminados correctamente');
         } catch (\Exception $e) {
@@ -210,6 +227,19 @@ class PaginaV2Controller extends Controller
             'error' => [
                 'message' => 'No file uploaded.'
             ]
+        ]);
+    }
+
+    public function log($accion, $lugar, $informacion)
+    {
+        HistorialLog::create([
+            'usuario_id' => Auth::user()->id,
+            'usuario_nombre' => Auth::user()->name,
+            'modulo' => 'Pagina',
+            'accion' => $accion,
+            'lugar' => $lugar,
+            'informacion' => $informacion,
+            'fecha_accion' => now(),
         ]);
     }
 }

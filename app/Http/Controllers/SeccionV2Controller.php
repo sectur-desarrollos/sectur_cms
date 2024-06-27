@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\PaginaV2;
 use App\Models\SeccionV2;
+use App\Models\HistorialLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class SeccionV2Controller extends Controller
 {
@@ -43,6 +45,10 @@ class SeccionV2Controller extends Controller
         $validated['activo'] = $request->has('activoCrear');
 
         $pagina->secciones()->create($validated);
+
+        // Registrar en el log
+        $this->log('Creación', $pagina->slug.'/'.$validated['slug'], 'Agregó el registro: "' . $validated['titulo'] . '" con la informacion "'. implode(', ', $validated).'"');
+    
         return redirect()->route('paginas.secciones.index', $pagina)->with('success', 'Sección creada exitosamente.');
     }
 
@@ -62,6 +68,9 @@ class SeccionV2Controller extends Controller
         $validated['activo'] = $request->has('activoEditar');
 
         $seccion->update($validated);
+
+        // Registrar en el log
+        $this->log('Actualización', $pagina->slug.'/'.$seccion->slug, 'Actualizó el registro: "' . $validated['titulo'] . '" con la informacion "'. implode(', ', $validated).'"');
 
         return redirect()->route('paginas.secciones.index', $pagina)->with('success', 'Sección actualizada exitosamente.');
     }
@@ -88,9 +97,18 @@ class SeccionV2Controller extends Controller
                 Storage::disk('public')->deleteDirectory($directoryPath);
             }
     
+            session(['paginaSlug' => $pagina->slug]);
+            session(['seccionSlug' => $seccion->slug]);
+            session(['seccionTitulo' => $seccion->titulo]);
+            session(['seccionData' => $seccion]);
+
             // Finalmente, eliminar la sección
             $seccion->delete();
-    
+
+            // Registrar en el log
+            $this->log('Eliminación', session('paginaSlug').'/'.session('seccionSlug'), 'Eliminó el registro: "' . session('seccionTitulo') . '" con la informacion "'. session('seccionData').'"');
+            session()->forget(['paginaSlug', 'seccionSlug','seccionTitulo', 'seccionData']);            
+
             return redirect()->route('paginas.secciones.index', $pagina)->with('success', 'Sección y sus archivos eliminados correctamente.');
         } catch (\Exception $e) {
             return redirect()->route('paginas.secciones.index', $pagina)->with('error', 'Hubo un problema al eliminar la sección: ' . $e->getMessage());
@@ -103,5 +121,18 @@ class SeccionV2Controller extends Controller
         $enlaces = $seccion->enlaces()->paginate(10);
 
         return view('admin-v2.seccion.contenido', compact('pagina', 'seccion', 'archivos', 'enlaces'));
+    }
+
+    public function log($accion, $lugar, $informacion)
+    {
+        HistorialLog::create([
+            'usuario_id' => Auth::user()->id,
+            'usuario_nombre' => Auth::user()->name,
+            'modulo' => 'Sección',
+            'accion' => $accion,
+            'lugar' => $lugar,
+            'informacion' => $informacion,
+            'fecha_accion' => now(),
+        ]);
     }
 }

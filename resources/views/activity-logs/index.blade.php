@@ -1,6 +1,6 @@
 @extends('layouts.general')
 
-@section('title_page', 'Listado de actividades logs')
+@section('title_page', 'Bitácora')
 
 @section('content_page')
 <div class="card shadow p-3 mb-5 bg-body rounded">
@@ -15,11 +15,13 @@
         <table class="table" id="activityLogsTable">
             <thead>
                 <tr>
-                    <th>Nombre del log</th>
-                    <th>Descripción</th>
-                    <th>Evento</th>
+                    <th>Módulo</th>
+                    <th>Acción</th>
                     <th>Quién</th>
-                    <th>Acciones</th>
+                    <th>Información</th>
+                    <th>Donde</th>
+                    <th>Fecha</th>
+                    {{-- <th>btn</th> --}}
                 </tr>
             </thead>
         </table>
@@ -52,31 +54,31 @@
 <script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script>
 {{-- Fin para responsive de datatables --}}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+
 <script>
 $(document).ready(function () {
     $('#activityLogsTable').DataTable({
         "serverSide": true,
         "ajax": "{{ url('activity-logs-data') }}",
         "columns": [
-            {data: 'log_name',    name: 'log_name'},
-            {data: 'description', name: 'description'},
-            {data: 'event',       
-                // Cambiando el contenido de la data según su contenido
+            {data: 'modulo',    name: 'modulo'},
+            {data: 'accion', name: 'accion'},
+            {data: 'usuario_nombre', name: 'usuario_nombre'},
+            {data: 'informacion',  name: 'informacion'},
+            {data: 'lugar', name:'lugar'},
+            {
+                data: 'fecha_accion',
+                name: 'fecha_accion',
                 render: function (data, type, row) {
-                            if (data === "created") {
-                                return '<td>Crear</td>';
-                            }
-                            if (data === 'updated') {
-                                return '<td>Actualización</td>';
-                            }
-                            if (data === 'deleted') {
-                                return '<td>Eliminado</td>';
-                            }
-                            return 'Evento';
-                        }
+                    if (type === 'display' || type === 'filter') {
+                        return moment(data).format('DD-MM-YYYY HH:mm:ss');
+                    }
+                    return data;
+                }
             },
-            {data: 'causer',  name: 'causer'},
-            {data: 'btn'},
+            // {data: 'btn'},
         ],
         responsive: true,
         autoWidth: false,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Menu;
 use App\Models\Pagina;
 use App\Models\User;
+use App\Models\HistorialLog;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables as FacadesDataTables;
@@ -70,7 +71,7 @@ class ActivityLogController extends Controller
                                             'propiedadesActualizado' => $propiedadesActualizadas,
                                             'propiedadesEliminadas' => $propiedadesEliminadas,
                                         ]);
- */
+        */
         
         switch ($log->log_name) {
             case 'Archivo':
@@ -436,14 +437,7 @@ class ActivityLogController extends Controller
 
     public function activityLogsDatatables()
     {
-        return FacadesDataTables::eloquent(Activity::with('causer')->orderBy('updated_at', 'desc'))
-                ->addColumn('causer', function (Activity $activity) {
-                    // return $activity->causer->name;
-                    $user = User::where('id', $activity->causer_id)->select('name')->get();
-                    $nombre_json = json_encode($user, JSON_UNESCAPED_UNICODE);
-                    $nameUser = Str::between($nombre_json, '[{"name":"', '"}]');
-                    return $nameUser;
-                })
+        return FacadesDataTables::eloquent(HistorialLog::orderBy('fecha_accion', 'desc'))
                 ->addColumn('btn', 'activity-logs.actions')
                 ->rawColumns(['btn'])
                 ->toJson();

@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Rules\Recaptcha;
 use Illuminate\Http\Request;
+use App\Models\HistorialLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 
 class AutenticarController extends Controller
 {
-    public function credenciales(){
+    public function credenciales()
+    {
         return view('autenticar.login');
     }
 
@@ -38,8 +40,12 @@ class AutenticarController extends Controller
             
             if (Hash::check($password, $password_bd)) {
                 if( $estado_activo=='Si'){
-		    session()->flush();
+		            session()->flush();
                     Auth::login($usuario, true);
+                    
+                    // Registrar en el log
+                    $this->log(Auth::user()->id, Auth::user()->name, 'Iniciar Sesión', 'Autenticar', 'Usuario datos: '.Auth::user()->name . ' | ' . Auth::user()->email);
+    
                     return redirect()->route('dashboard');
                 }
                 else{
@@ -53,7 +59,29 @@ class AutenticarController extends Controller
     }
 
     public function salida(){
+        session(['id' => Auth::user()->id]);
+        session(['nombre' => Auth::user()->name]);
+        session(['correo' => Auth::user()->email]);
+        
         Auth::logout();
+
+        // Registrar en el log
+        $this->log(session('id'), session('nombre'), 'Cerrar Sesión', 'Autenticar', 'Usuario datos: '. session('nombre') . ' | ' .  session('correo'));
+        session()->forget(['id','nombre', 'correo']);
+
         return redirect('/');
+    }
+
+    public function log($usuario_id, $nombre_usuario, $accion, $lugar, $informacion)
+    {
+        HistorialLog::create([
+            'usuario_id' => $usuario_id,
+            'usuario_nombre' => $nombre_usuario,
+            'modulo' => 'Autenticar',
+            'accion' => $accion,
+            'lugar' => $lugar,
+            'informacion' => $informacion,
+            'fecha_accion' => now(),
+        ]);
     }
 }

@@ -6,9 +6,11 @@ use App\Models\ArchivoV2;
 use App\Models\PaginaV2;
 use App\Models\SeccionV2;
 use App\Models\SubseccionV2;
+use App\Models\HistorialLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class ArchivoV2Controller extends Controller
 {
@@ -16,7 +18,7 @@ class ArchivoV2Controller extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
-            'archivo' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,png,jpg|max:20480', // 20MB max
+            'archivo' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,png,jpg|max:25480', // 20MB max
             'ordenamiento' => 'required|integer',
             'entity_id' => 'required|integer',
             'entity_type' => 'required|string|in:pagina,seccion,subseccion'
@@ -66,6 +68,9 @@ class ArchivoV2Controller extends Controller
 
         ArchivoV2::create($validated);
 
+         // Registrar en el log
+        $this->log('Creación', $folder, 'Agregó el registro: "' . $validated['nombre'] . '" con archivo '. $fileName);
+
         return redirect()->back()->with('success', 'Archivo subido y guardado correctamente');
     }
 
@@ -80,6 +85,8 @@ class ArchivoV2Controller extends Controller
     
         $validated['activo'] = $request->has('activoArchivoEditar');
     
+        $folder = '';
+        $fileName = '';
         // Solo eliminar y reemplazar el archivo si se ha subido uno nuevo
         if ($request->hasFile('archivo')) {
             // Eliminar el archivo actual del servidor
@@ -91,7 +98,6 @@ class ArchivoV2Controller extends Controller
     
             // Determinar la ruta de almacenamiento
             $entity = null;
-            $folder = '';
             if ($entityType === 'pagina') {
                 $entity = PaginaV2::findOrFail($entityId);
                 $folder = 'paginas/' . Str::slug($entity->slug);
@@ -118,6 +124,14 @@ class ArchivoV2Controller extends Controller
         }
     
         $archivo->update($validated);
+
+        if($folder == '' && $fileName == ''){
+            $folder = $archivo->path;
+            $fileName = $archivo->path;
+        }
+
+        // Registrar en el log
+        $this->log('Actualización', $folder, 'Actualizó registro: "' . $validated['nombre'] . '" con archivo '. $fileName);
     
         return redirect()->back()->with('success', 'Archivo actualizado y guardado correctamente');
     }
@@ -126,15 +140,23 @@ class ArchivoV2Controller extends Controller
     public function destroy(ArchivoV2 $archivo)
     {
         try {
-             // Eliminar el archivo del servidor
+
+            session(['folder' => $archivo->path]);
+            session(['archivoNombre' => $archivo->nombre]);
+
+            // Eliminar el archivo del servidor
             Storage::disk('public')->delete($archivo->path);
 
             $archivo->delete();
+
+            // Registrar en el log
+            $this->log('Eliminación', session('folder'), 'Eliminó el registro: ' . session('archivoNombre'));
+            session()->forget(['folder', 'archivoNombre']);
+
             return redirect()->back()->with('success', 'Archivo eliminado correctamente');
         } catch (\Throwable $th) {
-            return redirect()->back()->with('success', 'No se pudo eliminar archivo');
+            return redirect()->back()->with('error', 'No se pudo eliminar archivo');
         }
-       
     }
 
     public function tamanoArchivo($file)
@@ -146,5 +168,18 @@ class ArchivoV2Controller extends Controller
         $fileSizeFormatted = number_format($fileSize / pow(1024, $power), 2, '.', ',') . ' ' . $units[$power];
     
         return $fileSizeFormatted;
+    }
+
+    public function log($accion, $lugar, $informacion)
+    {
+        HistorialLog::create([
+            'usuario_id' => Auth::user()->id,
+            'usuario_nombre' => Auth::user()->name,
+            'modulo' => 'Archivo',
+            'accion' => $accion,
+            'lugar' => $lugar,
+            'informacion' => $informacion,
+            'fecha_accion' => now(),
+        ]);
     }
 }
