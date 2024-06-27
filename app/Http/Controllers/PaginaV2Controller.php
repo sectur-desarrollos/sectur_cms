@@ -10,6 +10,7 @@ use App\Models\HistorialLog;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str; 
 use Illuminate\Support\Facades\Auth;
+use App\Enums\AreaEnum;
 
 class PaginaV2Controller extends Controller
 {
@@ -37,7 +38,8 @@ class PaginaV2Controller extends Controller
     
     public function create()
     {
-        return view('admin-v2.paginas.create');
+        $areas = AreaEnum::cases();
+        return view('admin-v2.paginas.create', compact('areas'));
     }
 
     public function store(Request $request)
@@ -56,6 +58,10 @@ class PaginaV2Controller extends Controller
     
         $validated['activo'] = $request->has('activo');
     
+        if ($request->has('areas')) {
+            $validated['fuente'] = implode(', ', $request->areas);
+        }
+
         if ($request->hasFile('imagen_destacada')) {
             $validated['imagen_destacada'] = $this->guardarImagenDestacada($request->file('imagen_destacada'));
         }
@@ -73,8 +79,10 @@ class PaginaV2Controller extends Controller
         // Cargar relaciones con paginación
         $archivos = ArchivoV2::where('pagina_id', $pagina->id)->paginate(5, ['*'], 'archivosPage');
         $enlaces = EnlaceV2::where('pagina_id', $pagina->id)->paginate(5, ['*'], 'enlacesPage');
-        
-        return view('admin-v2.paginas.edit', compact('pagina', 'archivos', 'enlaces'));
+        $areas = AreaEnum::cases();
+        $selectedAreas = explode(', ', $pagina->fuente);    
+
+        return view('admin-v2.paginas.edit', compact('pagina','areas', 'selectedAreas', 'archivos', 'enlaces'));
     }    
 
     public function show($slug)
@@ -141,6 +149,8 @@ class PaginaV2Controller extends Controller
     
             $validated['imagen_destacada'] = $this->guardarImagenDestacada($request->file('imagen_destacada'));
         }
+        
+        $validated['fecha_actualizacion'] = now();
     
         $pagina->update($validated);
 

@@ -28,6 +28,18 @@ class EnlaceV2Controller extends Controller
         $entityType = $request->input('entity_type');
         $entityId = $request->input('entity_id');
         $entity = $this->getEnlaceable($entityType, $entityId);
+
+        if($entityType == 'pagina'){
+            PaginaV2::where('id', $entityId)->update(['fecha_actualizacion' => now()]);
+        } elseif ($entityType == 'seccion') {
+            $seccion = SeccionV2::with('pagina')->where('id', $entityId)->first();
+            $pagina_id = $seccion->pagina->id;
+            PaginaV2::where('id', $pagina_id)->update(['fecha_actualizacion' => now()]);
+        } elseif ($entityType == 'subseccion') {
+            $subseccion = SubseccionV2::with('seccion.pagina')->where('id', $entityId)->first();
+            $pagina_id = $subseccion->seccion->pagina->id;
+            PaginaV2::where('id', $pagina_id)->update(['fecha_actualizacion' => now()]);
+        }
     
         $entity->enlaces()->create($validated);
 

@@ -61,6 +61,8 @@
         })
     </script>
     {{-- Google recaptcha termina --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
     @stack('css')
 </head>
 
@@ -245,7 +247,7 @@
 
     {{-- CKEditor --}}
     <script src="{{asset('assets/layout-admin/js/ckeditor.js')}}"></script>
-
+    <script src="{{asset('assets/layout-admin/js/select2.min.js')}}"></script>
     {{-- JS --}}
     @stack('js')
 </body>

@@ -66,6 +66,19 @@ class ArchivoV2Controller extends Controller
             $validated['subseccion_id'] = $entity->id;
         }
 
+        // Actualizando la fecha de las paginas por cada archivo que se suba
+        if ($entityType === 'pagina') {
+            PaginaV2::where('id', $entity->id)->update(['fecha_actualizacion' => now()]);
+        } elseif ($entityType === 'seccion') {
+            $seccion = SeccionV2::with('pagina')->where('id', $entity->id)->first();
+            $pagina_id = $seccion->pagina->id;
+            PaginaV2::where('id', $pagina_id)->update(['fecha_actualizacion' => now()]);
+        } elseif ($entityType === 'subseccion') {
+            $subseccion = SubseccionV2::with('seccion.pagina')->where('id', $entity->id)->first();
+            $pagina_id = $subseccion->seccion->pagina->id;
+            PaginaV2::where('id', $pagina_id)->update(['fecha_actualizacion' => now()]);
+        }
+
         ArchivoV2::create($validated);
 
          // Registrar en el log
@@ -87,14 +100,14 @@ class ArchivoV2Controller extends Controller
     
         $folder = '';
         $fileName = '';
+        $entityType = $archivo->pagina_id ? 'pagina' : ($archivo->seccion_id ? 'seccion' : 'subseccion');
+        $entityId = $archivo->pagina_id ?? $archivo->seccion_id ?? $archivo->subseccion_id;
         // Solo eliminar y reemplazar el archivo si se ha subido uno nuevo
         if ($request->hasFile('archivo')) {
             // Eliminar el archivo actual del servidor
             Storage::disk('public')->delete($archivo->path);
     
             $file = $request->file('archivo');
-            $entityType = $archivo->pagina_id ? 'pagina' : ($archivo->seccion_id ? 'seccion' : 'subseccion');
-            $entityId = $archivo->pagina_id ?? $archivo->seccion_id ?? $archivo->subseccion_id;
     
             // Determinar la ruta de almacenamiento
             $entity = null;
@@ -124,6 +137,19 @@ class ArchivoV2Controller extends Controller
         }
     
         $archivo->update($validated);
+
+        // Actualizando la fecha de las paginas por cada archivo que se suba
+        if ($entityType === 'pagina') {
+            PaginaV2::where('id', $entityId)->update(['fecha_actualizacion' => now()]);
+        } elseif ($entityType === 'seccion') {
+            $seccion = SeccionV2::with('pagina')->where('id', $entityId)->first();
+            $pagina_id = $seccion->pagina->id;
+            PaginaV2::where('id', $pagina_id)->update(['fecha_actualizacion' => now()]);
+        } elseif ($entityType === 'subseccion') {
+            $subseccion = SubseccionV2::with('seccion.pagina')->where('id', $entityId)->first();
+            $pagina_id = $subseccion->seccion->pagina->id;
+            PaginaV2::where('id', $pagina_id)->update(['fecha_actualizacion' => now()]);
+        }
 
         if($folder == '' && $fileName == ''){
             $folder = $archivo->path;

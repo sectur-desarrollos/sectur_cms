@@ -56,8 +56,19 @@
                 </div>
                 <div class="mb-3">
                     <label for="fuente" class="form-label">Fuente</label>
-                    <input type="text" name="fuente" class="form-control @error('fuente') is-invalid @enderror" value="{{ old('fuente', $pagina->fuente) }}">
+                    <input type="text" name="fuente" id="fuente" class="form-control @error('fuente') is-invalid @enderror" value="{{ old('fuente', $pagina->fuente) }}" required>
                     @error('fuente')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="mb-3">
+                    <label for="areas" class="form-label">Áreas</label>
+                    <select name="areas[]" id="areas" class="form-control @error('areas') is-invalid @enderror" multiple="multiple">
+                        @foreach($areas as $area)
+                            <option value="{{ $area->value }}" {{ in_array($area->value, $selectedAreas) ? 'selected' : '' }}>{{ $area->value }}</option>
+                        @endforeach
+                    </select>
+                    @error('areas')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -511,6 +522,15 @@
         .catch(error => {
             console.error(error);
         });
+
+
+        $('#areas').select2();
+    
+        $('#areas').on('change', function() {
+            let selectedAreas = $(this).val();
+            $('#fuente').val(selectedAreas.join(', '));
+        });
+
     });
 </script>
 @endpush
