@@ -50,7 +50,12 @@
                         <div class="col">
                             <div class="mb-3">
                                 <label for="nombre" class="form-label">Tipo</label>
-                                <input  type="text" class="form-control" name="tipo" value="{{ old('tipo', $contenidoFooter->tipo) }}" autocomplete="off">
+                                {{-- <input  type="text" class="form-control" name="tipo" value="{{ old('tipo', $contenidoFooter->tipo) }}" autocomplete="off"> --}}
+                                <select class="form-select" name="tipo">
+                                    <option value="" selected>Seleccionar tipo</option>
+                                    <option {{ old('tipo') == '1' ? 'selected' : ($contenidoFooter->tipo == '1' ? 'selected' : '') }} value="1">Contacto</option>
+                                    <option {{ old('tipo') == '2' ? 'selected' : ($contenidoFooter->tipo == '2' ? 'selected' : '') }} value="2">Recursos del Portal</option>
+                                </select>
                                 @error('tipo')
                                 <span class="text-danger">{{$message}}</span>
                                 @enderror

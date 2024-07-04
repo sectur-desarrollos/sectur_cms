@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Footer;
 use App\Models\Menu;
 use App\Models\Pagina;
+use App\Models\PaginaV2;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,7 @@ class HomeController extends Controller
     {
         $usuarioContador = User::count();
         $menuContador = Menu::count();
-        $paginaContador = Pagina::count();
+        $paginaContador = PaginaV2::count();
         
         // Obtener la cantidad de páginas del usuario autenticado
         $paginasContadorUsuarioAuth = User::select('paginas')->get();

@@ -104,7 +104,7 @@
                 uploadUrl: "{{ route('ckeditor.upload') . '?_token=' . csrf_token() }}"
             },
             toolbar: [
-                "heading", "|", "bold", "italic", "link", "bulletedList", "numberedList", "blockQuote", "|", "insertTable", "tableColumn", "tableRow", "mergeTableCells", "|", "undo", "redo", "imageUpload"
+                "heading", "|", "bold", "italic", "link", "bulletedList", "numberedList", "blockQuote", "|", "insertTable", "tableColumn", "tableRow", "mergeTableCells", "|", "undo", "redo", "imageUpload", "|", "htmlEmbed"
             ]
         })
         .then(editor => {

@@ -246,7 +246,8 @@
     <script src="{{asset('assets/assets-bootstrap/dashboard/js/dashboard.js')}}"></script>
 
     {{-- CKEditor --}}
-    <script src="{{asset('assets/layout-admin/js/ckeditor.js')}}"></script>
+    {{-- <script src="{{asset('assets/layout-admin/js/ckeditor.js')}}"></script> --}}
+    <script src="{{asset('vendor/ckeditor-images-and-html-embebed/build/ckeditor.js')}}"></script>
     <script src="{{asset('assets/layout-admin/js/select2.min.js')}}"></script>
     {{-- JS --}}
     @stack('js')
